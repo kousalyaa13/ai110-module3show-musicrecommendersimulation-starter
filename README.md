@@ -17,17 +17,33 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommenders like Spotify combine two strategies: collaborative filtering, which finds patterns across millions of users' listening histories, and content-based filtering, which analyzes the actual audio features of songs. At scale they layer in deep learning, contextual signals like time of day, and reinforcement techniques that continuously balance showing you familiar favorites against introducing something new. This simulation focuses on content-based filtering — the foundational layer that works even when there's no listening history to draw from.
 
-Some prompts to answer:
+This version scores each song by comparing four audio features against a user's taste profile: **mood** (an exact-match categorical check weighted most heavily at 35%), **energy** (how intense the track feels, 30%), **valence** (the emotional positivity of the song, 20%), and **acousticness** (organic vs. electronic texture, 15%). Each float feature is scored using a linear penalty — the further a song's value drifts from the user's target, the lower it scores. The final recommendation is the top-k songs ranked by total score, with a human-readable explanation generated for each match. The system prioritizes **transparency and interpretability**: every recommendation comes with a reason, and the scoring weights are explicit rather than hidden inside a neural network.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+### Song Features
 
-You can include a simple diagram or bullet list if helpful.
+| Field | Type | Range | Role in scoring |
+|---|---|---|---|
+| `id` | `int` | — | Unique identifier, not scored |
+| `title` | `str` | — | Display only |
+| `artist` | `str` | — | Display only |
+| `genre` | `str` | pop, lofi, rock, jazz… | Optional boost signal |
+| `mood` | `str` | happy, chill, intense… | **Primary score** (weight 0.35) |
+| `energy` | `float` | 0.0 – 1.0 | **Scored** (weight 0.30) |
+| `tempo_bpm` | `float` | ~60 – 200 | Correlated with energy; optional use |
+| `valence` | `float` | 0.0 – 1.0 | **Scored** (weight 0.20) |
+| `danceability` | `float` | 0.0 – 1.0 | Available but weakest signal |
+| `acousticness` | `float` | 0.0 – 1.0 | **Scored** (weight 0.15) |
+
+### UserProfile Features
+
+| Field | Type | What it represents |
+|---|---|---|
+| `favorite_genre` | `str` | Preferred genre label |
+| `favorite_mood` | `str` | Target mood for matching |
+| `target_energy` | `float` | Desired intensity level |
+| `likes_acoustic` | `bool` | Prefers organic over electronic texture |
 
 ---
 

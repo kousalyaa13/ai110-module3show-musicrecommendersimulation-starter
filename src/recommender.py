@@ -58,10 +58,42 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     """
     Scores a single song against user preferences.
     Required by recommend_songs() and src/main.py
+    Max possible score: 5.0
     """
-    # TODO: Implement scoring logic using your Algorithm Recipe from Phase 2.
-    # Expected return format: (score, reasons)
-    return []
+    reasons = []
+
+    # Rule 1: Mood — 2.0 pts
+    if song["mood"] == user_prefs.get("mood", ""):
+        mood_score = 2.0
+        reasons.append(f"mood matches '{song['mood']}'")
+    else:
+        mood_score = 0.0
+
+    # Rule 2: Energy — up to 1.5 pts
+    energy_diff = abs(float(song["energy"]) - float(user_prefs.get("energy", 0.5)))
+    energy_score = 1.5 * (1 - energy_diff)
+    if energy_diff < 0.15:
+        reasons.append(f"energy {song['energy']} closely matches your target")
+
+    # Rule 3: Genre — 0.75 pts
+    if song["genre"] == user_prefs.get("favorite_genre", ""):
+        genre_score = 0.75
+        reasons.append(f"genre '{song['genre']}' matches your preference")
+    else:
+        genre_score = 0.0
+
+    # Rule 4: Acousticness — up to 0.50 pts
+    acoustic_diff = abs(float(song["acousticness"]) - float(user_prefs.get("acousticness", 0.5)))
+    acoustic_score = 0.50 * (1 - acoustic_diff)
+    if acoustic_diff < 0.15:
+        reasons.append(f"acoustic texture ({song['acousticness']}) suits your preference")
+
+    # Rule 5: Valence — up to 0.25 pts
+    valence_diff = abs(float(song["valence"]) - float(user_prefs.get("valence", 0.65)))
+    valence_score = 0.25 * (1 - valence_diff)
+
+    total = mood_score + energy_score + genre_score + acoustic_score + valence_score
+    return (round(total, 3), reasons)
 
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
     """
