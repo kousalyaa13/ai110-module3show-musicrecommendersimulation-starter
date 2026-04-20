@@ -70,6 +70,11 @@ Songs are ranked by total score descending. The top `k` results are returned wit
 ![](docs/screenshots/recommendations_3.jpg)
 ![](docs/screenshots/recommendations_4.jpg)
 
+## Sample Output with Stress Test
+![](docs/screenshots/stress_test_1.jpg)
+![](docs/screenshots/stress_test_2.jpg)
+![](docs/screenshots/stress_test_3.jpg)
+
 ### Expected Biases
 
 - **Mood lock-in.** Mood carries 40% of the maximum score. Songs labeled `"focused"`, `"calm"`, or `"relaxed"` score zero on mood even when they are sonically near-identical to `"chill"`. Users wanting a broad low-energy session may see qualified songs unfairly penalized.
@@ -116,11 +121,21 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+### Experiment 1: Disabling the Mood Rule
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+**Change:** Commented out Rule 1 (mood exact match, +2.0 pts) so every song scored a flat 0.0 for mood regardless of match.
+
+**Results for Chill Lofi profile:**
+
+| Rank | WITH mood | Score | WITHOUT mood | Score |
+|---|---|---|---|---|
+| #1 | Library Rain (chill) | 4.91 | Focus Flow (focused) | 2.95 |
+| #2 | Midnight Coding (chill) | 4.89 | Library Rain (chill) | 2.91 |
+| #3 | Spacewalk Thoughts (chill) | 4.01 | Midnight Coding (chill) | 2.89 |
+| #4 | Focus Flow (focused) | 2.95 | Coffee Shop Stories (relaxed) | 2.15 |
+| #5 | Coffee Shop Stories (relaxed) | 2.15 | Porch Swing Summer (nostalgic) | 2.07 |
+
+**Conclusion:** The change made recommendations *different*, not more accurate. Without mood, Focus Flow (labeled "focused", not "chill") jumped to #1 purely on genre and float proximity. Spacewalk Thoughts disappeared entirely because its only advantage was the mood match. Most notably, a country song (Porch Swing Summer) snuck into #5 — a clear sign the system lost its anchor. The mood rule is load-bearing: removing it collapses the meaningful score gap from ~4.9 to ~2.9 and lets acousticness drive results, which surfaces plausible but wrong songs for this profile.
 
 ---
 
