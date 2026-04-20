@@ -13,7 +13,8 @@ from src.recommender import load_songs, recommend_songs
 
 
 def main() -> None:
-    songs = load_songs("data/songs.csv") 
+    songs = load_songs("data/songs.csv")
+    print(f"Loaded songs: {len(songs)}")
 
     # Taste profile: late-night chill session — low energy, acoustic, slightly melancholy
     user_prefs = {

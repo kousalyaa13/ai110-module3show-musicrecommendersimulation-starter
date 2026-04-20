@@ -28,22 +28,47 @@ This version scores each song by comparing four audio features against a user's 
 | `id` | `int` | — | Unique identifier, not scored |
 | `title` | `str` | — | Display only |
 | `artist` | `str` | — | Display only |
-| `genre` | `str` | pop, lofi, rock, jazz… | Optional boost signal |
-| `mood` | `str` | happy, chill, intense… | **Primary score** (weight 0.35) |
-| `energy` | `float` | 0.0 – 1.0 | **Scored** (weight 0.30) |
-| `tempo_bpm` | `float` | ~60 – 200 | Correlated with energy; optional use |
-| `valence` | `float` | 0.0 – 1.0 | **Scored** (weight 0.20) |
-| `danceability` | `float` | 0.0 – 1.0 | Available but weakest signal |
-| `acousticness` | `float` | 0.0 – 1.0 | **Scored** (weight 0.15) |
+| `genre` | `str` | pop, lofi, rock, jazz… | Bonus signal (+0.75 pts) |
+| `mood` | `str` | happy, chill, intense… | **Primary score** (+2.0 pts) |
+| `energy` | `float` | 0.0 – 1.0 | **Scored** (up to +1.5 pts) |
+| `tempo_bpm` | `float` | ~60 – 200 | Correlated with energy; not scored |
+| `valence` | `float` | 0.0 – 1.0 | **Scored** (up to +0.25 pts) |
+| `danceability` | `float` | 0.0 – 1.0 | Available but not scored |
+| `acousticness` | `float` | 0.0 – 1.0 | **Scored** (up to +0.50 pts) |
 
 ### UserProfile Features
 
 | Field | Type | What it represents |
 |---|---|---|
 | `favorite_genre` | `str` | Preferred genre label |
-| `favorite_mood` | `str` | Target mood for matching |
-| `target_energy` | `float` | Desired intensity level |
-| `likes_acoustic` | `bool` | Prefers organic over electronic texture |
+| `mood` | `str` | Target mood for matching |
+| `energy` | `float` | Desired intensity level |
+| `acousticness` | `float` | Preferred organic vs. electronic texture |
+| `valence` | `float` | Desired emotional positivity |
+| `likes_acoustic` | `bool` | Boolean form of acousticness preference |
+
+### Algorithm Recipe
+
+Each song is scored against the user profile using five rules. Scores are summed for a maximum of **5.0 points**.
+
+| Rule | Type | Max Points | Rationale |
+|---|---|---|---|
+| Mood match | Exact categorical | 2.00 | Most reliable cross-genre signal |
+| Energy similarity | Linear float distance | 1.50 | Widest spread in the dataset; separates hype from chill |
+| Genre match | Exact categorical | 0.75 | Rewards label match without dominating |
+| Acousticness similarity | Linear float distance | 0.50 | Separates organic from electronic texture |
+| Valence similarity | Linear float distance | 0.25 | Fine-tunes emotional tone |
+
+Float features use a linear penalty: `score = weight × (1 - abs(song_value - target_value))`. A perfect match scores the full weight; a difference of 1.0 scores zero.
+
+Songs are ranked by total score descending. The top `k` results are returned with a human-readable explanation listing which rules fired.
+
+### Expected Biases
+
+- **Mood lock-in.** Mood carries 40% of the maximum score. Songs labeled `"focused"`, `"calm"`, or `"relaxed"` score zero on mood even when they are sonically near-identical to `"chill"`. Users wanting a broad low-energy session may see qualified songs unfairly penalized.
+- **Genre string fragility.** `"pop"` and `"indie pop"` do not match, so sonically similar songs in adjacent genre labels receive no genre bonus. This can make the genre rule feel arbitrary.
+- **No context awareness.** The same profile scores identically at 7am and 11pm. Real platforms adjust for time-of-day and session context; this system cannot.
+- **Catalog skew.** The 20-song dataset has three lofi songs and only one each of metal, classical, reggae, and soul. Users with niche tastes have fewer candidates to surface, making top-k results feel repetitive.
 
 ---
 
