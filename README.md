@@ -63,6 +63,13 @@ Float features use a linear penalty: `score = weight × (1 - abs(song_value - ta
 
 Songs are ranked by total score descending. The top `k` results are returned with a human-readable explanation listing which rules fired.
 
+### Sample Output
+
+![](docs/screenshots/recommendations_1.jpg)
+![](docs/screenshots/recommendations_2.jpg)
+![](docs/screenshots/recommendations_3.jpg)
+![](docs/screenshots/recommendations_4.jpg)
+
 ### Expected Biases
 
 - **Mood lock-in.** Mood carries 40% of the maximum score. Songs labeled `"focused"`, `"calm"`, or `"relaxed"` score zero on mood even when they are sonically near-identical to `"chill"`. Users wanting a broad low-energy session may see qualified songs unfairly penalized.
